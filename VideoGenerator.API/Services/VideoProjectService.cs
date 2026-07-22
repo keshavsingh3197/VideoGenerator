@@ -139,7 +139,7 @@ public class VideoProjectService : IVideoProjectService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate preview for project {ProjectId}", projectId);
+            _logger.LogError(ex, "Failed to generate preview for project {ProjectId}", projectId.Replace(Environment.NewLine, string.Empty));
             await _repository.UpdateStatusAsync(projectId, VideoStatus.Failed);
             throw;
         }

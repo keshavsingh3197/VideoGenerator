@@ -76,7 +76,7 @@ public class VideosController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating preview for {Id}", id);
+            _logger.LogError(ex, "Error generating preview for {Id}", id.Replace(Environment.NewLine, string.Empty));
             return StatusCode(500, new { error = "Failed to generate preview" });
         }
     }
