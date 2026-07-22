@@ -1,5 +1,6 @@
 using VideoGenerator.API.Configuration;
 using VideoGenerator.API.DTOs;
+using VideoGenerator.API.Extensions;
 using VideoGenerator.API.Models;
 using VideoGenerator.API.Repositories;
 
@@ -139,7 +140,7 @@ public class VideoProjectService : IVideoProjectService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate preview for project {ProjectId}", projectId.Replace(Environment.NewLine, string.Empty));
+            _logger.LogError(ex, "Failed to generate preview for project {ProjectId}", LogSanitizer.Sanitize(projectId));
             await _repository.UpdateStatusAsync(projectId, VideoStatus.Failed);
             throw;
         }

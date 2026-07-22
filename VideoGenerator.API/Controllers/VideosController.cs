@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VideoGenerator.API.DTOs;
+using VideoGenerator.API.Extensions;
 using VideoGenerator.API.Services;
 
 namespace VideoGenerator.API.Controllers;
@@ -76,7 +77,7 @@ public class VideosController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating preview for {Id}", id.Replace(Environment.NewLine, string.Empty));
+            _logger.LogError(ex, "Error generating preview for {Id}", LogSanitizer.Sanitize(id));
             return StatusCode(500, new { error = "Failed to generate preview" });
         }
     }
