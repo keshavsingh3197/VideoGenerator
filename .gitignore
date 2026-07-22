@@ -427,3 +427,18 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Angular
+video-generator-ui/node_modules/
+video-generator-ui/dist/
+video-generator-ui/.angular/
+
+# .NET
+VideoGenerator.API/bin/
+VideoGenerator.API/obj/
+
+# Environment files with secrets
+*.env
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
