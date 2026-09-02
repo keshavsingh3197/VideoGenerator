@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using VideoGenerator.API.Configuration;
 using VideoGenerator.API.DTOs;
 using VideoGenerator.API.Models;
@@ -20,10 +21,12 @@ public interface IGeminiService
 public class GeminiService : IGeminiService
 {
     private readonly HttpClient _httpClient;
-    private readonly GeminiSettings _settings;
+    private readonly IOptionsMonitor<GeminiSettings> _settings;
     private readonly ILogger<GeminiService> _logger;
 
-    public GeminiService(IHttpClientFactory httpClientFactory, GeminiSettings settings, ILogger<GeminiService> logger)
+    private GeminiSettings Settings => _settings.CurrentValue;
+
+    public GeminiService(IHttpClientFactory httpClientFactory, IOptionsMonitor<GeminiSettings> settings, ILogger<GeminiService> logger)
     {
         _httpClient = httpClientFactory.CreateClient("Gemini");
         _settings = settings;
@@ -42,7 +45,7 @@ public class GeminiService : IGeminiService
                      "[{\"title\": \"...\", \"description\": \"...\", \"seoScore\": 85}]\n\n" +
                      "Focus on:\n- High CTR potential\n- Including relevant keywords\n- Creating curiosity or urgency";
 
-        var response = await CallGeminiAsync(prompt, _settings.DefaultModel);
+        var response = await CallGeminiAsync(prompt, Settings.DefaultModel);
 
         try
         {
@@ -82,7 +85,7 @@ public class GeminiService : IGeminiService
                      "\"estimatedDuration\": \"45-60 seconds\"}\n\n" +
                      "Include hook in first 3 seconds and call to action at end.";
 
-        var response = await CallGeminiAsync(prompt, _settings.DefaultModel);
+        var response = await CallGeminiAsync(prompt, Settings.DefaultModel);
 
         try
         {
@@ -125,7 +128,7 @@ public class GeminiService : IGeminiService
                      "{\"scenes\": [{\"timestamp\": \"0:00-0:05\", \"visual\": \"...\", \"audio\": \"...\", \"text\": \"...\"}], " +
                      "\"thumbnailDescription\": \"...\", \"moodBoard\": \"...\"}";
 
-        return await CallGeminiAsync(prompt, _settings.DefaultModel);
+        return await CallGeminiAsync(prompt, Settings.DefaultModel);
     }
 
     public async Task<AiChatResponse> ChatAsync(AiChatRequest request, VideoProject? projectContext)
@@ -139,7 +142,7 @@ public class GeminiService : IGeminiService
                      "Respond helpfully. Return as JSON:\n" +
                      "{\"response\": \"...\", \"suggestions\": [\"...\"], \"updatedConfig\": null}";
 
-        var response = await CallGeminiAsync(prompt, _settings.DefaultModel);
+        var response = await CallGeminiAsync(prompt, Settings.DefaultModel);
 
         try
         {
@@ -170,7 +173,7 @@ public class GeminiService : IGeminiService
                      "Return only a JSON array of strings: [\"tag1\", \"tag2\", ...]\n" +
                      "Tags should be relevant, mix broad and specific, include trending keywords.";
 
-        var response = await CallGeminiAsync(prompt, _settings.DefaultModel);
+        var response = await CallGeminiAsync(prompt, Settings.DefaultModel);
 
         try
         {
@@ -193,7 +196,7 @@ public class GeminiService : IGeminiService
                      "Provide detailed instructions for AI-based character transformation including:\n" +
                      "- Character appearance changes\n- Style-specific features\n- Color palette\n- Animation style";
 
-        return await CallGeminiAsync(prompt, _settings.DefaultModel);
+        return await CallGeminiAsync(prompt, Settings.DefaultModel);
     }
 
     public async Task<string> GenerateThumbnailAsync(VideoProject project)
@@ -203,12 +206,13 @@ public class GeminiService : IGeminiService
                      "The thumbnail should be eye-catching, 1280x720 pixels, high contrast.\n" +
                      "Provide a detailed image generation prompt.";
 
-        return await CallGeminiAsync(prompt, _settings.DefaultModel);
+        return await CallGeminiAsync(prompt, Settings.DefaultModel);
     }
 
     private async Task<string> CallGeminiAsync(string prompt, string model)
     {
-        if (string.IsNullOrEmpty(_settings.ApiKey))
+        var settings = Settings;
+        if (string.IsNullOrEmpty(settings.ApiKey))
         {
             _logger.LogWarning("Gemini API key not configured, returning mock response");
             return GetMockResponse(prompt);
@@ -225,7 +229,7 @@ public class GeminiService : IGeminiService
                 generationConfig = new { temperature = 0.7, maxOutputTokens = 2048 }
             };
 
-            var url = $"{_settings.BaseUrl}/models/{model}:generateContent?key={_settings.ApiKey}";
+            var url = $"{settings.BaseUrl}/models/{model}:generateContent?key={settings.ApiKey}";
             var response = await _httpClient.PostAsJsonAsync(url, requestBody);
 
             if (!response.IsSuccessStatusCode)

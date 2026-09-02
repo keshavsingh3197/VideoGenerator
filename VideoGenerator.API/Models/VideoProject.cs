@@ -20,6 +20,8 @@ public class VideoProject
     public string VoiceOver { get; set; } = "default";
     public string BackgroundMusic { get; set; } = "none";
     public string CharacterStyle { get; set; } = "none";
+    public string? SourceContent { get; set; }
+    public List<string> DistributionTargets { get; set; } = new();
     public VideoStatus Status { get; set; } = VideoStatus.Draft;
     public string? PreviewUrl { get; set; }
     public string? VideoUrl { get; set; }

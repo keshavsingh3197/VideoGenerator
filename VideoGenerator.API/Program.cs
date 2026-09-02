@@ -8,12 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Settings
 var mongoSettings = builder.Configuration.GetSection("MongoDb").Get<MongoDbSettings>() ?? new MongoDbSettings();
-var geminiSettings = builder.Configuration.GetSection("Gemini").Get<GeminiSettings>() ?? new GeminiSettings();
 var youTubeSettings = builder.Configuration.GetSection("YouTube").Get<YouTubeSettings>() ?? new YouTubeSettings();
 
 builder.Services.AddSingleton(mongoSettings);
-builder.Services.AddSingleton(geminiSettings);
 builder.Services.AddSingleton(youTubeSettings);
+builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
 
 // MongoDB
 builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoSettings.ConnectionString));

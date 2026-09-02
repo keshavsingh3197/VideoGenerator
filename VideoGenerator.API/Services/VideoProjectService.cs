@@ -63,6 +63,8 @@ public class VideoProjectService : IVideoProjectService
             VoiceOver = request.VoiceOver,
             BackgroundMusic = request.BackgroundMusic,
             CharacterStyle = request.CharacterStyle,
+            SourceContent = request.SourceContent,
+            DistributionTargets = request.DistributionTargets ?? new List<string>(),
             Tags = request.Tags ?? new List<string>(),
             UserId = userId,
             AiConfig = request.AiConfig ?? new AiGenerationConfig { VideoType = request.VideoType },
@@ -99,6 +101,8 @@ public class VideoProjectService : IVideoProjectService
         if (request.VoiceOver != null) existing.VoiceOver = request.VoiceOver;
         if (request.BackgroundMusic != null) existing.BackgroundMusic = request.BackgroundMusic;
         if (request.CharacterStyle != null) existing.CharacterStyle = request.CharacterStyle;
+        if (request.SourceContent != null) existing.SourceContent = request.SourceContent;
+        if (request.DistributionTargets != null) existing.DistributionTargets = request.DistributionTargets;
         if (request.Tags != null) existing.Tags = request.Tags;
         if (request.AiConfig != null) existing.AiConfig = request.AiConfig;
 
@@ -198,6 +202,8 @@ public class VideoProjectService : IVideoProjectService
         p.VoiceOver,
         p.BackgroundMusic,
         p.CharacterStyle,
+        p.SourceContent,
+        p.DistributionTargets,
         p.Status.ToString(),
         p.PreviewUrl,
         p.VideoUrl,

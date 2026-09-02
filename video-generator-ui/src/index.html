@@ -6,7 +6,14 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="AI-powered video generation for YouTube Shorts and long-form videos using Google Gemini">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Material Icons font needed for <mat-icon> ligature icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+  <!-- Use absolute paths so favicon is found regardless of base href or routing -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <!-- Common fallbacks / sizes (add the referenced PNGs to `public/` if you want PNG support) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta name="theme-color" content="#0b1020">
 </head>
 <body class="mat-app-background">
   <app-root></app-root>

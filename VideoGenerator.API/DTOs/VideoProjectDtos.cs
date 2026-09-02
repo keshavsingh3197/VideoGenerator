@@ -14,6 +14,8 @@ public record CreateVideoProjectRequest(
     string VoiceOver = "default",
     string BackgroundMusic = "none",
     string CharacterStyle = "none",
+    string? SourceContent = null,
+    List<string>? DistributionTargets = null,
     string VideoType = "youtube_short",
     List<string>? Tags = null,
     AiGenerationConfig? AiConfig = null
@@ -31,6 +33,8 @@ public record UpdateVideoProjectRequest(
     string? VoiceOver,
     string? BackgroundMusic,
     string? CharacterStyle,
+    string? SourceContent,
+    List<string>? DistributionTargets,
     List<string>? Tags,
     AiGenerationConfig? AiConfig
 );
@@ -48,6 +52,8 @@ public record VideoProjectResponse(
     string VoiceOver,
     string BackgroundMusic,
     string CharacterStyle,
+    string? SourceContent,
+    List<string> DistributionTargets,
     string Status,
     string? PreviewUrl,
     string? VideoUrl,

@@ -41,6 +41,15 @@ html, body {
   background: rgba(255,255,255,0.03) !important;
 }
 
+/* Ensure material icons render inline and don't collapse adjacent text (fix notification/button layout) */
+mat-icon, .mat-icon, .material-icons {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  line-height: 1 !important;
+  font-size: inherit;
+}
+
 a { color: #e94560; }
 a:hover { color: #ff6b88; }
 

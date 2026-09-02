@@ -6,7 +6,8 @@ import {
   CreateVideoProjectRequest,
   GenerateTitlesResponse,
   GenerateScriptResponse,
-  AiChatResponse
+  AiChatResponse,
+  AiIntegrationStatus
 } from '../models/video.models';
 import { environment } from '../../environments/environment';
 
@@ -83,5 +84,9 @@ export class AiService {
 
   generateThumbnail(projectId: string): Observable<{ thumbnailPrompt: string; projectId: string }> {
     return this.http.post<{ thumbnailPrompt: string; projectId: string }>(`${this.apiUrl}/generate-thumbnail`, { projectId });
+  }
+
+  getIntegrationStatus(): Observable<AiIntegrationStatus> {
+    return this.http.get<AiIntegrationStatus>(`${this.apiUrl}/status`);
   }
 }

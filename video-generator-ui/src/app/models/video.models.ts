@@ -11,6 +11,8 @@ export interface VideoProject {
   voiceOver: string;
   backgroundMusic: string;
   characterStyle: string;
+  sourceContent?: string;
+  distributionTargets: string[];
   status: VideoStatus;
   previewUrl?: string;
   videoUrl?: string;
@@ -56,6 +58,8 @@ export interface CreateVideoProjectRequest {
   voiceOver?: string;
   backgroundMusic?: string;
   characterStyle?: string;
+  sourceContent?: string;
+  distributionTargets?: string[];
   videoType?: string;
   tags?: string[];
   aiConfig?: AiGenerationConfig;
@@ -82,6 +86,14 @@ export interface AiChatResponse {
   response: string;
   suggestions?: string[];
   updatedConfig?: Record<string, string>;
+}
+
+export interface AiIntegrationStatus {
+  provider: string;
+  isConfigured: boolean;
+  mode: string;
+  model: string;
+  message: string;
 }
 
 export interface Notification {

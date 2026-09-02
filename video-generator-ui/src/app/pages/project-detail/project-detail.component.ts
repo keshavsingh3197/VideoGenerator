@@ -13,8 +13,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
+import * as XLSX from 'xlsx';
 import { VideoService, AiService } from '../../services/video.service';
 import { VideoProject } from '../../models/video.models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-project-detail',
@@ -42,6 +44,14 @@ import { VideoProject } from '../../models/video.models';
             </div>
           </div>
           <div class="header-actions">
+            @if (project()!.videoUrl || project()!.status === 'Ready') {
+              <button mat-stroked-button (click)="downloadVideo()">
+                <mat-icon>download</mat-icon> Download Video
+              </button>
+            }
+            <button mat-stroked-button (click)="exportExcelReport()">
+              <mat-icon>table_view</mat-icon> Export Excel
+            </button>
             @if (project()!.status === 'Draft' || project()!.status === 'PreviewReady') {
               <button mat-raised-button color="primary" (click)="startGeneration()" [disabled]="processing()">
                 <mat-icon>play_arrow</mat-icon> Generate Video
@@ -80,6 +90,8 @@ import { VideoProject } from '../../models/video.models';
                     <div class="info-row"><label>Character Style</label><span>{{ project()!.characterStyle }}</span></div>
                     <mat-divider></mat-divider>
                     <div class="info-row"><label>Language</label><span>{{ project()!.language }}</span></div>
+                    <mat-divider></mat-divider>
+                    <div class="info-row"><label>AI Model</label><span>{{ project()!.aiConfig?.model || 'gemini-2.0-flash' }}</span></div>
                   </mat-card-content>
                 </mat-card>
 
@@ -103,6 +115,26 @@ import { VideoProject } from '../../models/video.models';
                     }
                   </div>
                 </div>
+              }
+
+              @if (project()!.distributionTargets?.length > 0) {
+                <div class="tags-section">
+                  <label>Distribution Targets</label>
+                  <div class="tags-row">
+                    @for (target of project()!.distributionTargets; track target) {
+                      <mat-chip>{{ target }}</mat-chip>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (project()!.sourceContent) {
+                <mat-card class="source-card">
+                  <mat-card-header><mat-card-title>Imported Source</mat-card-title></mat-card-header>
+                  <mat-card-content>
+                    <pre class="source-text">{{ project()!.sourceContent }}</pre>
+                  </mat-card-content>
+                </mat-card>
               }
 
               @if (project()!.youTubeUrl) {
@@ -189,6 +221,8 @@ import { VideoProject } from '../../models/video.models';
     .tags-row { display: flex; flex-wrap: wrap; gap: 8px; }
     .youtube-card { background: rgba(255,0,0,0.05) !important; border: 1px solid rgba(255,0,0,0.2) !important; }
     .youtube-card mat-card-content { display: flex; align-items: center; gap: 12px; }
+    .source-card { margin-top: 16px; }
+    .source-text { white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; max-height: 260px; overflow-y: auto; }
 
     .empty-preview { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .empty-preview mat-icon { font-size: 64px !important; width: 64px !important; height: 64px !important; color: #888; }
@@ -283,6 +317,53 @@ export class ProjectDetailComponent implements OnInit {
       },
       error: () => { this.chatting.set(false); }
     });
+  }
+
+  downloadVideo(): void {
+    const id = this.project()?.id;
+    if (!id) return;
+
+    const link = document.createElement('a');
+    link.href = `${environment.apiUrl}/api/videos/${id}/download`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.click();
+  }
+
+  exportExcelReport(): void {
+    const project = this.project();
+    if (!project) return;
+
+    const workbook = XLSX.utils.book_new();
+    const summaryRows = [
+      ['Field', 'Value'],
+      ['Title', project.title],
+      ['Description', project.description],
+      ['Prompt', project.prompt],
+      ['Style', project.style],
+      ['Duration', project.duration],
+      ['Aspect Ratio', project.aspectRatio],
+      ['Resolution', project.resolution],
+      ['Language', project.language],
+      ['AI Model', project.aiConfig?.model ?? 'gemini-2.0-flash'],
+      ['Status', project.status],
+      ['Video URL', project.videoUrl ?? ''],
+      ['YouTube URL', project.youTubeUrl ?? '']
+    ];
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+    const targetsSheet = XLSX.utils.json_to_sheet((project.distributionTargets ?? []).map(target => ({ Target: target })));
+    XLSX.utils.book_append_sheet(workbook, targetsSheet, 'Targets');
+
+    const tagsSheet = XLSX.utils.json_to_sheet((project.tags ?? []).map(tag => ({ Tag: tag })));
+    XLSX.utils.book_append_sheet(workbook, tagsSheet, 'Tags');
+
+    XLSX.writeFile(workbook, `${this.safeFileName(project.title)}-report.xlsx`);
+  }
+
+  private safeFileName(value: string): string {
+    return value.replace(/[\\/:*?"<>|]/g, '-').trim() || 'video-project';
   }
 
   formatStatus(status: string): string {

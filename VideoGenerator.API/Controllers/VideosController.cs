@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using System.IO.Compression;
+using System.Text.Json;
 using VideoGenerator.API.DTOs;
 using VideoGenerator.API.Extensions;
 using VideoGenerator.API.Services;
@@ -110,10 +112,64 @@ public class VideosController : ControllerBase
         return Ok(new { authUrl = url });
     }
 
+    [HttpGet("{id}/download")]
+    public async Task<IActionResult> Download(string id)
+    {
+        var project = await _videoService.GetByIdAsync(id);
+        if (project == null) return NotFound();
+
+        using var memoryStream = new MemoryStream();
+        using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var summaryEntry = archive.CreateEntry("project-summary.json", CompressionLevel.Fastest);
+            await using var summaryStream = summaryEntry.Open();
+            await using var writer = new StreamWriter(summaryStream);
+
+            var summary = new
+            {
+                project.Id,
+                project.Title,
+                project.Description,
+                project.Prompt,
+                project.Style,
+                project.Duration,
+                project.AspectRatio,
+                project.Resolution,
+                project.Language,
+                project.CharacterStyle,
+                project.SourceContent,
+                project.DistributionTargets,
+                project.Tags,
+                project.Status,
+                project.PreviewUrl,
+                project.VideoUrl,
+                project.YouTubeUrl,
+                project.CreatedAt,
+                project.UpdatedAt
+            };
+
+            await writer.WriteAsync(JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
+        }
+
+        memoryStream.Position = 0;
+        var fileName = $"{SanitizeFileName(project.Title)}-package.zip";
+        return File(memoryStream.ToArray(), "application/zip", fileName);
+    }
+
     [HttpPost("youtube/exchange-code")]
     public async Task<IActionResult> ExchangeYouTubeCode([FromBody] string code)
     {
         var success = await _youTubeService.ExchangeCodeAsync(code);
         return Ok(new { success });
+    }
+
+    private static string SanitizeFileName(string value)
+    {
+        foreach (var invalidChar in Path.GetInvalidFileNameChars())
+        {
+            value = value.Replace(invalidChar, '-');
+        }
+
+        return string.IsNullOrWhiteSpace(value) ? "video-project" : value.Trim();
     }
 }

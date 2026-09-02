@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using VideoGenerator.API.Configuration;
 using VideoGenerator.API.DTOs;
 using VideoGenerator.API.Services;
 
@@ -10,13 +12,37 @@ public class AiController : ControllerBase
 {
     private readonly IGeminiService _geminiService;
     private readonly IVideoProjectService _videoService;
+    private readonly IOptionsMonitor<GeminiSettings> _geminiSettings;
     private readonly ILogger<AiController> _logger;
 
-    public AiController(IGeminiService geminiService, IVideoProjectService videoService, ILogger<AiController> logger)
+    public AiController(
+        IGeminiService geminiService,
+        IVideoProjectService videoService,
+        IOptionsMonitor<GeminiSettings> geminiSettings,
+        ILogger<AiController> logger)
     {
         _geminiService = geminiService;
         _videoService = videoService;
+        _geminiSettings = geminiSettings;
         _logger = logger;
+    }
+
+    [HttpGet("status")]
+    public IActionResult GetStatus()
+    {
+        var settings = _geminiSettings.CurrentValue;
+        var configured = !string.IsNullOrWhiteSpace(settings.ApiKey);
+
+        return Ok(new
+        {
+            provider = "Google Gemini",
+            isConfigured = configured,
+            mode = configured ? "live-ai" : "fallback",
+            model = settings.DefaultModel,
+            message = configured
+                ? "AI is connected and generating live suggestions."
+                : "AI API key is not configured. The app will use local fallback suggestions."
+        });
     }
 
     [HttpPost("generate-titles")]
